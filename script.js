@@ -1,36 +1,70 @@
 /* =========================================================
-   BRACKET DINÁMICO
-   ========================================================= */
+   TORNEO - BRACKET DINÁMICO
+   =========================================================
 
+   EQUIPOS:
 
-/* =========================================================
-   1. LEER PARÁMETROS DE LA URL
-   ========================================================= */
-
-const params = new URLSearchParams(window.location.search);
-
-
-
-/* =========================================================
-   2. EQUIPOS CLASIFICADOS
-
-   p1 = primer lugar
-   p2 = segundo lugar
+   p1=Rudos
+   p2=Halcones
    ...
-   p16 = lugar 16
+   p16=Titanes
 
-   Si no existe el parámetro, usamos un nombre de prueba.
-   ========================================================= */
+
+   RESULTADOS:
+
+   o1=6-3,5-7,10-5,1
+
+   Significa:
+
+   Set 1: 6-3
+   Set 2: 5-7
+   Set 3: 10-5
+   Ganador: puesto 1
+
+
+   PARTIDOS:
+
+   OCTAVOS:
+   o1 ... o8
+
+   CUARTOS:
+   c1 ... c4
+
+   SEMIFINALES:
+   s1 ... s2
+
+   FINAL:
+   f1
+========================================================= */
+
+
+/* =========================================================
+   1. PARÁMETROS DE URL
+========================================================= */
+
+const params = new URLSearchParams(
+  window.location.search
+);
+
+
+
+/* =========================================================
+   2. CREAR LOS 16 EQUIPOS
+========================================================= */
 
 const equipos = {};
+
 
 for (let i = 1; i <= 16; i++) {
 
   equipos[i] = {
+
     puesto: i,
+
     nombre:
       params.get(`p${i}`) ||
       `Equipo ${i}`
+
   };
 
 }
@@ -38,23 +72,25 @@ for (let i = 1; i <= 16; i++) {
 
 
 /* =========================================================
-   3. ESTRUCTURA DE OCTAVOS
-
-   El orden es FIJO según nuestro sistema.
-   ========================================================= */
+   3. ESTRUCTURA FIJA DE OCTAVOS
+========================================================= */
 
 const crucesOctavos = [
 
   [1, 16],
+
   [8, 9],
 
   [4, 13],
+
   [5, 12],
 
   [2, 15],
+
   [7, 10],
 
   [3, 14],
+
   [6, 11]
 
 ];
@@ -62,57 +98,159 @@ const crucesOctavos = [
 
 
 /* =========================================================
-   4. RESULTADOS
+   4. LEER RESULTADO DE UN PARTIDO
 
-   Los parámetros serán:
+   Ejemplo:
 
-   o1a / o1b = Octavos partido 1
-   o2a / o2b = Octavos partido 2
-   etc.
+   o1=6-3,5-7,10-5,1
 
-   c1a / c1b = Cuartos
-   s1a / s1b = Semifinales
-   f1a / f1b = Final
-   ========================================================= */
+   Devuelve:
 
-function obtenerMarcador(parametro) {
+   {
+     sets: [
+       [6,3],
+       [5,7],
+       [10,5]
+     ],
 
-  const valor = params.get(parametro);
+     ganadorPuesto: 1
+   }
+========================================================= */
 
-  if (
-    valor === null ||
-    valor === ""
-  ) {
-    return null;
+function leerResultado(clave) {
+
+  const valor =
+    params.get(clave);
+
+
+  if (!valor) {
+
+    return {
+
+      sets: [],
+      ganadorPuesto: null
+
+    };
+
   }
 
-  return Number(valor);
+
+  const partes =
+    valor
+      .split(",")
+      .map(
+        parte => parte.trim()
+      )
+      .filter(Boolean);
+
+
+  if (partes.length < 2) {
+
+    return {
+
+      sets: [],
+      ganadorPuesto: null
+
+    };
+
+  }
+
+
+  /*
+     El último valor siempre será
+     el puesto del ganador.
+  */
+
+  const ganadorPuesto =
+    Number(
+      partes[partes.length - 1]
+    );
+
+
+  /*
+     Todo lo anterior son sets.
+  */
+
+  const setsTexto =
+    partes.slice(
+      0,
+      partes.length - 1
+    );
+
+
+  const sets = [];
+
+
+  setsTexto
+    .slice(0, 3)
+    .forEach(setTexto => {
+
+      /*
+         Permitimos:
+
+         6-3
+         7-5
+         10-8
+      */
+
+      const valores =
+        setTexto
+          .split("-")
+          .map(
+            valor => valor.trim()
+          );
+
+
+      if (valores.length !== 2) {
+        return;
+      }
+
+
+      sets.push([
+
+        valores[0],
+
+        valores[1]
+
+      ]);
+
+    });
+
+
+  return {
+
+    sets,
+    ganadorPuesto:
+      Number.isFinite(ganadorPuesto)
+        ? ganadorPuesto
+        : null
+
+  };
 
 }
 
 
 
 /* =========================================================
-   5. DETERMINAR GANADOR
+   5. OBTENER GANADOR
 
-   Si todavía no existen ambos marcadores,
-   el partido sigue pendiente.
+   IMPORTANTE:
 
-   Si hay empate, tampoco avanzamos automáticamente.
-   ========================================================= */
+   NO analizamos los sets.
+
+   Glide nos dice quién ganó.
+========================================================= */
 
 function obtenerGanador(
   equipoA,
   equipoB,
-  marcadorA,
-  marcadorB
+  resultado
 ) {
 
   if (
     !equipoA ||
     !equipoB ||
-    marcadorA === null ||
-    marcadorB === null
+    !resultado.ganadorPuesto
   ) {
 
     return null;
@@ -120,19 +258,31 @@ function obtenerGanador(
   }
 
 
-  if (marcadorA > marcadorB) {
+  if (
+    equipoA.puesto ===
+    resultado.ganadorPuesto
+  ) {
 
     return equipoA;
 
   }
 
 
-  if (marcadorB > marcadorA) {
+  if (
+    equipoB.puesto ===
+    resultado.ganadorPuesto
+  ) {
 
     return equipoB;
 
   }
 
+
+  /*
+     Si Glide manda un puesto que
+     no corresponde a ninguno de
+     los dos jugadores, no avanzamos.
+  */
 
   return null;
 
@@ -141,19 +291,285 @@ function obtenerGanador(
 
 
 /* =========================================================
-   6. CREAR VISUALMENTE UN PARTIDO
-   ========================================================= */
+   6. OBTENER MARCADOR DE UN SET
+========================================================= */
+
+function obtenerSet(
+  resultado,
+  numeroSet,
+  jugador
+) {
+
+  const set =
+    resultado.sets[numeroSet];
+
+
+  if (!set) {
+
+    return "–";
+
+  }
+
+
+  return set[jugador];
+
+}
+
+
+
+/* =========================================================
+   7. CREAR FILA DE EQUIPO
+========================================================= */
+
+function crearFilaEquipo(
+  equipo,
+  resultado,
+  jugador,
+  ganador
+) {
+
+  const fila =
+    document.createElement("div");
+
+
+  fila.className =
+    "equipo";
+
+
+  /*
+     Pintar ganador
+  */
+
+  if (
+    equipo &&
+    ganador &&
+    equipo.puesto === ganador.puesto
+  ) {
+
+    fila.classList.add(
+      "ganador"
+    );
+
+  }
+
+
+
+  /* ==============================
+     PUESTO
+  ============================== */
+
+  const puesto =
+    document.createElement("span");
+
+
+  puesto.className =
+    "puesto";
+
+
+  puesto.textContent =
+    equipo
+      ? equipo.puesto
+      : "—";
+
+
+
+  /* ==============================
+     NOMBRE
+  ============================== */
+
+  const nombre =
+    document.createElement("span");
+
+
+  nombre.className =
+    "nombre";
+
+
+  nombre.textContent =
+    equipo
+      ? equipo.nombre
+      : "Por definir";
+
+
+
+  /* ==============================
+     SET 1
+  ============================== */
+
+  const set1 =
+    document.createElement("span");
+
+
+  set1.className =
+    "set";
+
+
+  set1.textContent =
+    equipo
+      ? obtenerSet(
+          resultado,
+          0,
+          jugador
+        )
+      : "–";
+
+
+
+  /* ==============================
+     SET 2
+  ============================== */
+
+  const set2 =
+    document.createElement("span");
+
+
+  set2.className =
+    "set";
+
+
+  set2.textContent =
+    equipo
+      ? obtenerSet(
+          resultado,
+          1,
+          jugador
+        )
+      : "–";
+
+
+
+  /* ==============================
+     SET 3
+  ============================== */
+
+  const set3 =
+    document.createElement("span");
+
+
+  set3.className =
+    "set";
+
+
+  set3.textContent =
+    equipo
+      ? obtenerSet(
+          resultado,
+          2,
+          jugador
+        )
+      : "–";
+
+
+
+  /* ==============================
+     AGREGAR ELEMENTOS
+  ============================== */
+
+  fila.appendChild(
+    puesto
+  );
+
+
+  fila.appendChild(
+    nombre
+  );
+
+
+  fila.appendChild(
+    set1
+  );
+
+
+  fila.appendChild(
+    set2
+  );
+
+
+  fila.appendChild(
+    set3
+  );
+
+
+  return fila;
+
+}
+
+
+
+/* =========================================================
+   8. CREAR CABECERA S1 / S2 / S3
+========================================================= */
+
+function crearCabeceraSets() {
+
+  const cabecera =
+    document.createElement("div");
+
+
+  cabecera.className =
+    "cabecera-sets";
+
+
+  cabecera.innerHTML = `
+
+    <span class="espacio-puesto"></span>
+
+    <span class="espacio-nombre"></span>
+
+    <span class="titulo-set">
+      S1
+    </span>
+
+    <span class="titulo-set">
+      S2
+    </span>
+
+    <span class="titulo-set">
+      S3
+    </span>
+
+  `;
+
+
+  return cabecera;
+
+}
+
+
+
+/* =========================================================
+   9. CREAR PARTIDO COMPLETO
+========================================================= */
 
 function crearPartido(
   equipoA,
   equipoB,
-  marcadorA,
-  marcadorB,
+  resultado,
   ganador
 ) {
 
+  const contenedor =
+    document.createElement("div");
+
+
+  contenedor.className =
+    "partido-contenedor";
+
+
+
+  /* CABECERA */
+
+  contenedor.appendChild(
+    crearCabeceraSets()
+  );
+
+
+
+  /* TARJETA */
+
   const partido =
     document.createElement("div");
+
 
   partido.className =
     "partido";
@@ -168,126 +584,48 @@ function crearPartido(
   }
 
 
+
   partido.appendChild(
+
     crearFilaEquipo(
       equipoA,
-      marcadorA,
+      resultado,
+      0,
       ganador
     )
+
   );
 
 
   partido.appendChild(
+
     crearFilaEquipo(
       equipoB,
-      marcadorB,
+      resultado,
+      1,
       ganador
     )
+
   );
 
 
-  return partido;
+  contenedor.appendChild(
+    partido
+  );
+
+
+  return contenedor;
 
 }
 
 
 
 /* =========================================================
-   7. CREAR FILA DE EQUIPO
-   ========================================================= */
-
-function crearFilaEquipo(
-  equipo,
-  marcador,
-  ganador
-) {
-
-  const fila =
-    document.createElement("div");
-
-  fila.className =
-    "equipo";
-
-
-  if (
-    equipo &&
-    ganador &&
-    equipo === ganador
-  ) {
-
-    fila.classList.add(
-      "ganador"
-    );
-
-  }
-
-
-  /* PUESTO */
-
-  const puesto =
-    document.createElement("span");
-
-  puesto.className =
-    "puesto";
-
-  puesto.textContent =
-    equipo
-      ? equipo.puesto
-      : "—";
-
-
-  /* NOMBRE */
-
-  const nombre =
-    document.createElement("span");
-
-  nombre.className =
-    "nombre";
-
-  nombre.textContent =
-    equipo
-      ? equipo.nombre
-      : "Por definir";
-
-
-  /* MARCADOR */
-
-  const marcadorElemento =
-    document.createElement("span");
-
-  marcadorElemento.className =
-    "marcador";
-
-  marcadorElemento.textContent =
-    marcador !== null
-      ? marcador
-      : "–";
-
-
-  fila.appendChild(
-    puesto
-  );
-
-  fila.appendChild(
-    nombre
-  );
-
-  fila.appendChild(
-    marcadorElemento
-  );
-
-
-  return fila;
-
-}
-
-
-
-/* =========================================================
-   8. OCTAVOS
-   ========================================================= */
+   10. OCTAVOS
+========================================================= */
 
 const ganadoresOctavos = [];
+
 
 const contenedorOctavos =
   document.getElementById(
@@ -298,25 +636,21 @@ const contenedorOctavos =
 crucesOctavos.forEach(
   (cruce, index) => {
 
-    const numeroPartido =
+    const numero =
       index + 1;
 
 
     const equipoA =
       equipos[cruce[0]];
 
+
     const equipoB =
       equipos[cruce[1]];
 
 
-    const marcadorA =
-      obtenerMarcador(
-        `o${numeroPartido}a`
-      );
-
-    const marcadorB =
-      obtenerMarcador(
-        `o${numeroPartido}b`
+    const resultado =
+      leerResultado(
+        `o${numero}`
       );
 
 
@@ -324,8 +658,7 @@ crucesOctavos.forEach(
       obtenerGanador(
         equipoA,
         equipoB,
-        marcadorA,
-        marcadorB
+        resultado
       );
 
 
@@ -339,8 +672,7 @@ crucesOctavos.forEach(
       crearPartido(
         equipoA,
         equipoB,
-        marcadorA,
-        marcadorB,
+        resultado,
         ganador
       )
 
@@ -352,15 +684,11 @@ crucesOctavos.forEach(
 
 
 /* =========================================================
-   9. CUARTOS
-
-   Ganador O1 vs ganador O2
-   Ganador O3 vs ganador O4
-   Ganador O5 vs ganador O6
-   Ganador O7 vs ganador O8
-   ========================================================= */
+   11. CUARTOS
+========================================================= */
 
 const ganadoresCuartos = [];
+
 
 const contenedorCuartos =
   document.getElementById(
@@ -374,12 +702,15 @@ for (
   i++
 ) {
 
-  const numeroPartido =
+  const numero =
     i + 1;
 
 
   const equipoA =
-    ganadoresOctavos[i * 2];
+    ganadoresOctavos[
+      i * 2
+    ];
+
 
   const equipoB =
     ganadoresOctavos[
@@ -387,14 +718,9 @@ for (
     ];
 
 
-  const marcadorA =
-    obtenerMarcador(
-      `c${numeroPartido}a`
-    );
-
-  const marcadorB =
-    obtenerMarcador(
-      `c${numeroPartido}b`
+  const resultado =
+    leerResultado(
+      `c${numero}`
     );
 
 
@@ -402,8 +728,7 @@ for (
     obtenerGanador(
       equipoA,
       equipoB,
-      marcadorA,
-      marcadorB
+      resultado
     );
 
 
@@ -417,8 +742,7 @@ for (
     crearPartido(
       equipoA,
       equipoB,
-      marcadorA,
-      marcadorB,
+      resultado,
       ganador
     )
 
@@ -429,10 +753,11 @@ for (
 
 
 /* =========================================================
-   10. SEMIFINALES
-   ========================================================= */
+   12. SEMIFINALES
+========================================================= */
 
 const ganadoresSemifinales = [];
+
 
 const contenedorSemifinales =
   document.getElementById(
@@ -446,12 +771,15 @@ for (
   i++
 ) {
 
-  const numeroPartido =
+  const numero =
     i + 1;
 
 
   const equipoA =
-    ganadoresCuartos[i * 2];
+    ganadoresCuartos[
+      i * 2
+    ];
+
 
   const equipoB =
     ganadoresCuartos[
@@ -459,14 +787,9 @@ for (
     ];
 
 
-  const marcadorA =
-    obtenerMarcador(
-      `s${numeroPartido}a`
-    );
-
-  const marcadorB =
-    obtenerMarcador(
-      `s${numeroPartido}b`
+  const resultado =
+    leerResultado(
+      `s${numero}`
     );
 
 
@@ -474,8 +797,7 @@ for (
     obtenerGanador(
       equipoA,
       equipoB,
-      marcadorA,
-      marcadorB
+      resultado
     );
 
 
@@ -489,8 +811,7 @@ for (
     crearPartido(
       equipoA,
       equipoB,
-      marcadorA,
-      marcadorB,
+      resultado,
       ganador
     )
 
@@ -501,24 +822,20 @@ for (
 
 
 /* =========================================================
-   11. FINAL
-   ========================================================= */
+   13. FINAL
+========================================================= */
 
 const equipoFinalA =
   ganadoresSemifinales[0];
+
 
 const equipoFinalB =
   ganadoresSemifinales[1];
 
 
-const marcadorFinalA =
-  obtenerMarcador(
-    "f1a"
-  );
-
-const marcadorFinalB =
-  obtenerMarcador(
-    "f1b"
+const resultadoFinal =
+  leerResultado(
+    "f1"
   );
 
 
@@ -526,8 +843,7 @@ const campeon =
   obtenerGanador(
     equipoFinalA,
     equipoFinalB,
-    marcadorFinalA,
-    marcadorFinalB
+    resultadoFinal
   );
 
 
@@ -542,8 +858,7 @@ contenedorFinal.appendChild(
   crearPartido(
     equipoFinalA,
     equipoFinalB,
-    marcadorFinalA,
-    marcadorFinalB,
+    resultadoFinal,
     campeon
   )
 
@@ -552,8 +867,8 @@ contenedorFinal.appendChild(
 
 
 /* =========================================================
-   12. CAMPEÓN
-   ========================================================= */
+   14. CAMPEÓN
+========================================================= */
 
 const contenedorCampeon =
   document.getElementById(
@@ -585,15 +900,27 @@ if (campeon) {
         #${campeon.puesto}
       </div>
 
-      <div class="nombre-campeon">
-        ${campeon.nombre}
-      </div>
+      <div class="nombre-campeon"></div>
 
     </div>
 
   `;
 
-} else {
+  /*
+     textContent evita problemas si un nombre
+     contiene caracteres especiales.
+  */
+
+  contenedorCampeon
+    .querySelector(
+      ".nombre-campeon"
+    )
+    .textContent =
+      campeon.nombre;
+
+}
+
+else {
 
   contenedorCampeon.innerHTML = `
 
@@ -622,3 +949,33 @@ if (campeon) {
   `;
 
 }
+
+
+
+/* =========================================================
+   15. INFORMACIÓN PARA PRUEBAS
+========================================================= */
+
+console.log(
+  "Bracket cargado"
+);
+
+console.log(
+  "Ganadores de octavos:",
+  ganadoresOctavos
+);
+
+console.log(
+  "Ganadores de cuartos:",
+  ganadoresCuartos
+);
+
+console.log(
+  "Ganadores de semifinales:",
+  ganadoresSemifinales
+);
+
+console.log(
+  "Campeón:",
+  campeon
+);
