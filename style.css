@@ -1,3 +1,7 @@
+/* ==========================================
+   VARIABLES GENERALES
+========================================== */
+
 :root {
 
   /* COLORES */
@@ -31,10 +35,18 @@
 
   /* TAMAÑOS */
 
-  --ancho-columna: 280px;
-  --ancho-partido: 250px;
+  --ancho-columna:
+    280px;
+
+  --ancho-partido:
+    250px;
 }
 
+
+
+/* ==========================================
+   RESET
+========================================== */
 
 * {
   box-sizing: border-box;
@@ -68,9 +80,12 @@ body {
 
 
 
-/* ======================================
-   FONDO
-====================================== */
+/* ==========================================
+   FONDO GENERAL
+
+   Para cambiar el fondo simplemente
+   reemplaza fondo.jpg
+========================================== */
 
 .pagina {
 
@@ -97,9 +112,9 @@ body {
 
 
 
-/* ======================================
+/* ==========================================
    ENCABEZADO
-====================================== */
+========================================== */
 
 .encabezado {
 
@@ -117,12 +132,15 @@ body {
 
   border-bottom:
     1px solid
-    rgba(255,255,255,.10);
+    rgba(255, 255, 255, 0.10);
 
   background:
-    rgba(5,18,29,.75);
+    rgba(5, 18, 29, 0.75);
 
   backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
     blur(10px);
 
   z-index: 20;
@@ -133,34 +151,43 @@ body {
 
   margin: 0;
 
-  font-size: 25px;
+  font-size:
+    25px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  letter-spacing: 2px;
+  letter-spacing:
+    2px;
 }
 
 
 .subtitulo {
 
-  margin-top: 6px;
+  margin-top:
+    6px;
 
   color:
     var(--texto-secundario);
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  font-weight: 600;
+  font-weight:
+    600;
 
-  letter-spacing: 4px;
+  letter-spacing:
+    4px;
 }
 
 
 .linea-titulo {
 
-  width: 50px;
+  width:
+    50px;
 
-  height: 3px;
+  height:
+    3px;
 
   margin:
     14px auto 0;
@@ -174,41 +201,50 @@ body {
 
 
 
-/* ======================================
-   MENSAJE SCROLL
-====================================== */
+/* ==========================================
+   MENSAJE DE SCROLL
+========================================== */
 
 .ayuda-scroll {
 
-  position: sticky;
+  position:
+    sticky;
 
-  left: 0;
+  left:
+    0;
 
-  width: 100vw;
+  width:
+    100vw;
 
-  text-align: center;
+  padding:
+    10px;
 
-  padding: 10px;
+  text-align:
+    center;
 
   color:
     var(--texto-secundario);
 
-  font-size: 11px;
+  font-size:
+    11px;
 }
 
 
 
-/* ======================================
-   SCROLL HORIZONTAL
-====================================== */
+/* ==========================================
+   CONTENEDOR CON SCROLL HORIZONTAL
+========================================== */
 
 .scroll-torneo {
 
-  width: 100%;
+  width:
+    100%;
 
-  overflow-x: auto;
+  overflow-x:
+    auto;
 
-  overflow-y: hidden;
+  overflow-y:
+    hidden;
 
   -webkit-overflow-scrolling:
     touch;
@@ -218,9 +254,15 @@ body {
 }
 
 
+
+/* ==========================================
+   BRACKET COMPLETO
+========================================== */
+
 .bracket {
 
-  display: flex;
+  display:
+    flex;
 
   width:
     max-content;
@@ -229,9 +271,7 @@ body {
     100%;
 
   padding:
-    25px
-    30px
-    50px;
+    25px 30px 50px;
 
   gap:
     45px;
@@ -239,13 +279,14 @@ body {
 
 
 
-/* ======================================
-   RONDAS
-====================================== */
+/* ==========================================
+   COLUMNAS / RONDAS
+========================================== */
 
 .ronda {
 
-  position: relative;
+  position:
+    relative;
 
   width:
     var(--ancho-columna);
@@ -253,114 +294,158 @@ body {
   min-width:
     var(--ancho-columna);
 
+  padding-right:
+    25px;
+
   border-right:
     1px solid
     rgba(255,255,255,.08);
-
-  padding-right:
-    25px;
 }
 
 
 .ronda:last-child {
-  border-right: none;
+
+  border-right:
+    none;
 }
 
 
+
+/* ==========================================
+   TÍTULOS DE RONDAS
+========================================== */
+
 .nombre-ronda {
 
-  text-align: center;
+  margin-bottom:
+    5px;
 
-  font-size: 17px;
+  text-align:
+    center;
 
-  font-weight: 800;
+  font-size:
+    17px;
 
-  letter-spacing: 1px;
+  font-weight:
+    800;
 
-  margin-bottom: 5px;
+  letter-spacing:
+    1px;
 }
 
 
 .fecha-ronda {
 
-  text-align: center;
+  margin-bottom:
+    25px;
 
-  font-size: 12px;
+  text-align:
+    center;
+
+  font-size:
+    12px;
 
   color:
     var(--texto-secundario);
-
-  margin-bottom: 25px;
 }
 
 
 
-/* ======================================
-   DISTRIBUCIÓN DE PARTIDOS
-====================================== */
+/* ==========================================
+   CONTENEDOR DE PARTIDOS
+========================================== */
 
 .partidos {
 
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 }
 
 
-/* OCTAVOS */
+
+/* ==========================================
+   OCTAVOS
+========================================== */
 
 .octavos .partidos {
-  gap: 18px;
+
+  gap:
+    18px;
 }
 
 
-/* CUARTOS */
+
+/* ==========================================
+   CUARTOS
+========================================== */
 
 .cuartos .partidos {
 
-  padding-top: 48px;
+  padding-top:
+    48px;
 
-  gap: 116px;
+  gap:
+    116px;
 }
 
 
-/* SEMIFINALES */
+
+/* ==========================================
+   SEMIFINALES
+========================================== */
 
 .semifinales .partidos {
 
-  padding-top: 148px;
+  padding-top:
+    148px;
 
-  gap: 320px;
+  gap:
+    320px;
 }
 
 
-/* FINAL */
+
+/* ==========================================
+   FINAL
+========================================== */
 
 .final .partidos {
 
-  padding-top: 350px;
+  padding-top:
+    350px;
 }
 
 
-/* CAMPEÓN */
+
+/* ==========================================
+   COLUMNA CAMPEÓN
+========================================== */
 
 .campeon-ronda {
 
-  padding-top: 280px;
+  padding-top:
+    280px;
 }
 
 
 
-/* ======================================
-   PARTIDO
-====================================== */
+/* ==========================================
+   TARJETA DEL PARTIDO
+========================================== */
 
 .partido {
 
-  position: relative;
+  position:
+    relative;
 
   width:
     var(--ancho-partido);
+
+  overflow:
+    visible;
 
   border:
     1px solid
@@ -372,24 +457,30 @@ body {
   background:
     var(--tarjeta);
 
-  overflow:
-    visible;
-
   box-shadow:
     0 8px 25px
     rgba(0,0,0,.20);
 }
 
 
+
+/* ==========================================
+   FILA DE CADA EQUIPO
+========================================== */
+
 .equipo {
 
-  position: relative;
+  position:
+    relative;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  min-height: 42px;
+  min-height:
+    42px;
 
   padding:
     8px 13px;
@@ -401,40 +492,117 @@ body {
 
 
 .equipo:last-child {
-  border-bottom: none;
+
+  border-bottom:
+    none;
 }
 
+
+
+/* ==========================================
+   POSICIÓN / SEED
+
+   Ejemplo:
+   1  Equipo 1
+   16 Equipo 16
+========================================== */
+
+.equipo .puesto {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    27px;
+
+  min-width:
+    27px;
+
+  height:
+    24px;
+
+  margin-right:
+    8px;
+
+  border-right:
+    1px solid
+    rgba(255,255,255,.15);
+
+  color:
+    var(--texto-secundario);
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  line-height:
+    1;
+}
+
+
+
+/* ==========================================
+   NOMBRE DEL EQUIPO
+========================================== */
 
 .equipo .nombre {
 
-  flex: 1;
+  flex:
+    1;
 
-  font-size: 14px;
+  min-width:
+    0;
 
-  white-space: nowrap;
+  font-size:
+    14px;
 
-  overflow: hidden;
+  white-space:
+    nowrap;
 
-  text-overflow: ellipsis;
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
 }
 
+
+
+/* ==========================================
+   MARCADOR
+========================================== */
 
 .equipo .marcador {
 
-  min-width: 30px;
+  min-width:
+    30px;
 
-  text-align: center;
+  margin-left:
+    8px;
 
-  font-size: 18px;
+  text-align:
+    center;
 
-  font-weight: 800;
+  font-size:
+    18px;
+
+  font-weight:
+    800;
 }
 
 
 
-/* ======================================
-   GANADOR
-====================================== */
+/* ==========================================
+   EQUIPO GANADOR
+========================================== */
 
 .equipo.ganador {
 
@@ -450,11 +618,35 @@ body {
 
 .equipo.ganador .nombre {
 
-  font-weight: 700;
+  color:
+    #ffffff;
 
-  color: #ffffff;
+  font-weight:
+    700;
 }
 
+
+.equipo.ganador .puesto {
+
+  color:
+    var(--verde);
+
+  border-right-color:
+    rgba(32,229,111,.35);
+}
+
+
+.equipo.ganador .marcador {
+
+  color:
+    var(--verde);
+}
+
+
+
+/* ==========================================
+   PARTIDO RESUELTO
+========================================== */
 
 .partido.resuelto {
 
@@ -464,28 +656,37 @@ body {
 
 
 
-/* ======================================
-   LÍNEAS DE AVANCE
-====================================== */
+/* ==========================================
+   LÍNEA DE AVANCE
+========================================== */
 
 .partido::after {
 
-  content: "";
+  content:
+    "";
 
-  position: absolute;
+  position:
+    absolute;
 
-  top: 50%;
+  top:
+    50%;
 
-  right: -46px;
+  right:
+    -46px;
 
-  width: 46px;
+  width:
+    46px;
 
-  height: 2px;
+  height:
+    2px;
 
   background:
     var(--linea);
 }
 
+
+
+/* LÍNEA VERDE CUANDO YA HAY GANADOR */
 
 .partido.resuelto::after {
 
@@ -499,22 +700,29 @@ body {
 
 
 
-/* PUNTO VERDE */
+/* ==========================================
+   PUNTO DE AVANCE
+========================================== */
 
 .partido.resuelto::before {
 
-  content: "";
+  content:
+    "";
 
-  position: absolute;
+  position:
+    absolute;
 
-  right: -4px;
+  right:
+    -4px;
 
   top:
     calc(50% - 4px);
 
-  width: 8px;
+  width:
+    8px;
 
-  height: 8px;
+  height:
+    8px;
 
   background:
     var(--verde);
@@ -522,7 +730,8 @@ body {
   border-radius:
     50%;
 
-  z-index: 5;
+  z-index:
+    5;
 
   box-shadow:
     0 0 8px
@@ -531,23 +740,33 @@ body {
 
 
 
-/* ======================================
+/* ==========================================
    CAMPEÓN
-====================================== */
+========================================== */
 
 .campeon {
 
-  width: 190px;
+  width:
+    190px;
 
-  text-align: center;
+  text-align:
+    center;
 }
 
 
+
+/* IMAGEN DE LA COPA */
+
 .copa {
 
-  width: 90px;
+  display:
+    block;
 
-  height: 90px;
+  width:
+    100px;
+
+  height:
+    100px;
 
   margin:
     0 auto 10px;
@@ -557,7 +776,13 @@ body {
 }
 
 
+
+/* TEXTO CAMPEÓN */
+
 .campeon-titulo {
+
+  margin-bottom:
+    14px;
 
   color:
     var(--oro);
@@ -570,16 +795,16 @@ body {
 
   letter-spacing:
     1px;
-
-  margin-bottom:
-    14px;
 }
 
+
+
+/* TARJETA DEL CAMPEÓN */
 
 .campeon-card {
 
   padding:
-    20px 15px;
+    18px 15px 20px;
 
   border:
     2px solid
@@ -597,15 +822,46 @@ body {
 }
 
 
+
+/* CORONA */
+
 .corona {
+
+  margin-bottom:
+    5px;
+
+  color:
+    var(--oro);
 
   font-size:
     35px;
-
-  margin-bottom:
-    8px;
 }
 
+
+
+/* POSICIÓN ORIGINAL DEL CAMPEÓN */
+
+.campeon-puesto {
+
+  margin-bottom:
+    4px;
+
+  color:
+    var(--oro);
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    1px;
+}
+
+
+
+/* NOMBRE DEL CAMPEÓN */
 
 .nombre-campeon {
 
@@ -618,9 +874,9 @@ body {
 
 
 
-/* ======================================
+/* ==========================================
    MÓVIL
-====================================== */
+========================================== */
 
 @media (max-width: 600px) {
 
@@ -661,10 +917,46 @@ body {
   }
 
 
+  .equipo {
+
+    padding:
+      8px 10px;
+  }
+
+
+  .equipo .puesto {
+
+    width:
+      25px;
+
+    min-width:
+      25px;
+
+    margin-right:
+      7px;
+
+    font-size:
+      10px;
+  }
+
+
   .equipo .nombre {
 
     font-size:
       13px;
+  }
+
+
+  .equipo .marcador {
+
+    min-width:
+      24px;
+
+    margin-left:
+      5px;
+
+    font-size:
+      17px;
   }
 
 }
