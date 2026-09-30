@@ -1,962 +1,624 @@
-/* ==========================================
-   VARIABLES GENERALES
-========================================== */
-
-:root {
-
-  /* COLORES */
-
-  --fondo: #071521;
-
-  --tarjeta:
-    rgba(10, 27, 40, 0.92);
-
-  --tarjeta-borde:
-    #587080;
-
-  --texto:
-    #ffffff;
-
-  --texto-secundario:
-    #9eafbb;
-
-  --verde:
-    #20e56f;
-
-  --verde-fondo:
-    rgba(11, 112, 58, 0.30);
-
-  --linea:
-    #61798a;
-
-  --oro:
-    #ffc928;
+/* =========================================================
+   BRACKET DINÁMICO
+   ========================================================= */
 
 
-  /* TAMAÑOS */
+/* =========================================================
+   1. LEER PARÁMETROS DE LA URL
+   ========================================================= */
 
-  --ancho-columna:
-    280px;
+const params = new URLSearchParams(window.location.search);
 
-  --ancho-partido:
-    250px;
+
+
+/* =========================================================
+   2. EQUIPOS CLASIFICADOS
+
+   p1 = primer lugar
+   p2 = segundo lugar
+   ...
+   p16 = lugar 16
+
+   Si no existe el parámetro, usamos un nombre de prueba.
+   ========================================================= */
+
+const equipos = {};
+
+for (let i = 1; i <= 16; i++) {
+
+  equipos[i] = {
+    puesto: i,
+    nombre:
+      params.get(`p${i}`) ||
+      `Equipo ${i}`
+  };
+
 }
 
 
 
-/* ==========================================
-   RESET
-========================================== */
+/* =========================================================
+   3. ESTRUCTURA DE OCTAVOS
 
-* {
-  box-sizing: border-box;
-}
+   El orden es FIJO según nuestro sistema.
+   ========================================================= */
 
+const crucesOctavos = [
 
-html,
-body {
+  [1, 16],
+  [8, 9],
 
-  margin: 0;
-  padding: 0;
+  [4, 13],
+  [5, 12],
 
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  [2, 15],
+  [7, 10],
 
-  background:
-    var(--fondo);
+  [3, 14],
+  [6, 11]
 
-  color:
-    var(--texto);
-}
-
-
-body {
-  min-height: 100vh;
-}
+];
 
 
 
-/* ==========================================
-   FONDO GENERAL
+/* =========================================================
+   4. RESULTADOS
 
-   Para cambiar el fondo simplemente
-   reemplaza fondo.jpg
-========================================== */
+   Los parámetros serán:
 
-.pagina {
+   o1a / o1b = Octavos partido 1
+   o2a / o2b = Octavos partido 2
+   etc.
 
-  min-height: 100vh;
+   c1a / c1b = Cuartos
+   s1a / s1b = Semifinales
+   f1a / f1b = Final
+   ========================================================= */
 
-  background:
+function obtenerMarcador(parametro) {
 
-    linear-gradient(
-      rgba(3, 15, 24, 0.80),
-      rgba(3, 15, 24, 0.88)
-    ),
+  const valor = params.get(parametro);
 
-    url("fondo.jpg");
+  if (
+    valor === null ||
+    valor === ""
+  ) {
+    return null;
+  }
 
-  background-size:
-    cover;
+  return Number(valor);
 
-  background-position:
-    center;
-
-  background-attachment:
-    fixed;
 }
 
 
 
-/* ==========================================
-   ENCABEZADO
-========================================== */
+/* =========================================================
+   5. DETERMINAR GANADOR
 
-.encabezado {
+   Si todavía no existen ambos marcadores,
+   el partido sigue pendiente.
 
-  position: sticky;
+   Si hay empate, tampoco avanzamos automáticamente.
+   ========================================================= */
 
-  left: 0;
+function obtenerGanador(
+  equipoA,
+  equipoB,
+  marcadorA,
+  marcadorB
+) {
 
-  width: 100vw;
+  if (
+    !equipoA ||
+    !equipoB ||
+    marcadorA === null ||
+    marcadorB === null
+  ) {
 
-  padding:
-    25px 20px 20px;
+    return null;
 
-  text-align:
-    center;
-
-  border-bottom:
-    1px solid
-    rgba(255, 255, 255, 0.10);
-
-  background:
-    rgba(5, 18, 29, 0.75);
-
-  backdrop-filter:
-    blur(10px);
-
-  -webkit-backdrop-filter:
-    blur(10px);
-
-  z-index: 20;
-}
+  }
 
 
-.titulo {
+  if (marcadorA > marcadorB) {
 
-  margin: 0;
+    return equipoA;
 
-  font-size:
-    25px;
-
-  font-weight:
-    800;
-
-  letter-spacing:
-    2px;
-}
+  }
 
 
-.subtitulo {
+  if (marcadorB > marcadorA) {
 
-  margin-top:
-    6px;
+    return equipoB;
 
-  color:
-    var(--texto-secundario);
-
-  font-size:
-    12px;
-
-  font-weight:
-    600;
-
-  letter-spacing:
-    4px;
-}
+  }
 
 
-.linea-titulo {
+  return null;
 
-  width:
-    50px;
-
-  height:
-    3px;
-
-  margin:
-    14px auto 0;
-
-  background:
-    var(--verde);
-
-  border-radius:
-    10px;
 }
 
 
 
-/* ==========================================
-   MENSAJE DE SCROLL
-========================================== */
+/* =========================================================
+   6. CREAR VISUALMENTE UN PARTIDO
+   ========================================================= */
 
-.ayuda-scroll {
+function crearPartido(
+  equipoA,
+  equipoB,
+  marcadorA,
+  marcadorB,
+  ganador
+) {
 
-  position:
-    sticky;
+  const partido =
+    document.createElement("div");
 
-  left:
-    0;
+  partido.className =
+    "partido";
 
-  width:
-    100vw;
 
-  padding:
-    10px;
+  if (ganador) {
 
-  text-align:
-    center;
-
-  color:
-    var(--texto-secundario);
-
-  font-size:
-    11px;
-}
-
-
-
-/* ==========================================
-   CONTENEDOR CON SCROLL HORIZONTAL
-========================================== */
-
-.scroll-torneo {
-
-  width:
-    100%;
-
-  overflow-x:
-    auto;
-
-  overflow-y:
-    hidden;
-
-  -webkit-overflow-scrolling:
-    touch;
-
-  scrollbar-width:
-    thin;
-}
-
-
-
-/* ==========================================
-   BRACKET COMPLETO
-========================================== */
-
-.bracket {
-
-  display:
-    flex;
-
-  width:
-    max-content;
-
-  min-width:
-    100%;
-
-  padding:
-    25px 30px 50px;
-
-  gap:
-    45px;
-}
-
-
-
-/* ==========================================
-   COLUMNAS / RONDAS
-========================================== */
-
-.ronda {
-
-  position:
-    relative;
-
-  width:
-    var(--ancho-columna);
-
-  min-width:
-    var(--ancho-columna);
-
-  padding-right:
-    25px;
-
-  border-right:
-    1px solid
-    rgba(255,255,255,.08);
-}
-
-
-.ronda:last-child {
-
-  border-right:
-    none;
-}
-
-
-
-/* ==========================================
-   TÍTULOS DE RONDAS
-========================================== */
-
-.nombre-ronda {
-
-  margin-bottom:
-    5px;
-
-  text-align:
-    center;
-
-  font-size:
-    17px;
-
-  font-weight:
-    800;
-
-  letter-spacing:
-    1px;
-}
-
-
-.fecha-ronda {
-
-  margin-bottom:
-    25px;
-
-  text-align:
-    center;
-
-  font-size:
-    12px;
-
-  color:
-    var(--texto-secundario);
-}
-
-
-
-/* ==========================================
-   CONTENEDOR DE PARTIDOS
-========================================== */
-
-.partidos {
-
-  display:
-    flex;
-
-  flex-direction:
-    column;
-}
-
-
-
-/* ==========================================
-   OCTAVOS
-========================================== */
-
-.octavos .partidos {
-
-  gap:
-    18px;
-}
-
-
-
-/* ==========================================
-   CUARTOS
-========================================== */
-
-.cuartos .partidos {
-
-  padding-top:
-    48px;
-
-  gap:
-    116px;
-}
-
-
-
-/* ==========================================
-   SEMIFINALES
-========================================== */
-
-.semifinales .partidos {
-
-  padding-top:
-    148px;
-
-  gap:
-    320px;
-}
-
-
-
-/* ==========================================
-   FINAL
-========================================== */
-
-.final .partidos {
-
-  padding-top:
-    350px;
-}
-
-
-
-/* ==========================================
-   COLUMNA CAMPEÓN
-========================================== */
-
-.campeon-ronda {
-
-  padding-top:
-    280px;
-}
-
-
-
-/* ==========================================
-   TARJETA DEL PARTIDO
-========================================== */
-
-.partido {
-
-  position:
-    relative;
-
-  width:
-    var(--ancho-partido);
-
-  overflow:
-    visible;
-
-  border:
-    1px solid
-    var(--tarjeta-borde);
-
-  border-radius:
-    10px;
-
-  background:
-    var(--tarjeta);
-
-  box-shadow:
-    0 8px 25px
-    rgba(0,0,0,.20);
-}
-
-
-
-/* ==========================================
-   FILA DE CADA EQUIPO
-========================================== */
-
-.equipo {
-
-  position:
-    relative;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  min-height:
-    42px;
-
-  padding:
-    8px 13px;
-
-  border-bottom:
-    1px solid
-    rgba(255,255,255,.09);
-}
-
-
-.equipo:last-child {
-
-  border-bottom:
-    none;
-}
-
-
-
-/* ==========================================
-   POSICIÓN / SEED
-
-   Ejemplo:
-   1  Equipo 1
-   16 Equipo 16
-========================================== */
-
-.equipo .puesto {
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  width:
-    27px;
-
-  min-width:
-    27px;
-
-  height:
-    24px;
-
-  margin-right:
-    8px;
-
-  border-right:
-    1px solid
-    rgba(255,255,255,.15);
-
-  color:
-    var(--texto-secundario);
-
-  font-size:
-    11px;
-
-  font-weight:
-    800;
-
-  line-height:
-    1;
-}
-
-
-
-/* ==========================================
-   NOMBRE DEL EQUIPO
-========================================== */
-
-.equipo .nombre {
-
-  flex:
-    1;
-
-  min-width:
-    0;
-
-  font-size:
-    14px;
-
-  white-space:
-    nowrap;
-
-  overflow:
-    hidden;
-
-  text-overflow:
-    ellipsis;
-}
-
-
-
-/* ==========================================
-   MARCADOR
-========================================== */
-
-.equipo .marcador {
-
-  min-width:
-    30px;
-
-  margin-left:
-    8px;
-
-  text-align:
-    center;
-
-  font-size:
-    18px;
-
-  font-weight:
-    800;
-}
-
-
-
-/* ==========================================
-   EQUIPO GANADOR
-========================================== */
-
-.equipo.ganador {
-
-  background:
-
-    linear-gradient(
-      90deg,
-      var(--verde-fondo),
-      rgba(0,0,0,0)
+    partido.classList.add(
+      "resuelto"
     );
-}
 
-
-.equipo.ganador .nombre {
-
-  color:
-    #ffffff;
-
-  font-weight:
-    700;
-}
-
-
-.equipo.ganador .puesto {
-
-  color:
-    var(--verde);
-
-  border-right-color:
-    rgba(32,229,111,.35);
-}
-
-
-.equipo.ganador .marcador {
-
-  color:
-    var(--verde);
-}
-
-
-
-/* ==========================================
-   PARTIDO RESUELTO
-========================================== */
-
-.partido.resuelto {
-
-  border-color:
-    var(--verde);
-}
-
-
-
-/* ==========================================
-   LÍNEA DE AVANCE
-========================================== */
-
-.partido::after {
-
-  content:
-    "";
-
-  position:
-    absolute;
-
-  top:
-    50%;
-
-  right:
-    -46px;
-
-  width:
-    46px;
-
-  height:
-    2px;
-
-  background:
-    var(--linea);
-}
-
-
-
-/* LÍNEA VERDE CUANDO YA HAY GANADOR */
-
-.partido.resuelto::after {
-
-  background:
-    var(--verde);
-
-  box-shadow:
-    0 0 7px
-    rgba(32,229,111,.40);
-}
-
-
-
-/* ==========================================
-   PUNTO DE AVANCE
-========================================== */
-
-.partido.resuelto::before {
-
-  content:
-    "";
-
-  position:
-    absolute;
-
-  right:
-    -4px;
-
-  top:
-    calc(50% - 4px);
-
-  width:
-    8px;
-
-  height:
-    8px;
-
-  background:
-    var(--verde);
-
-  border-radius:
-    50%;
-
-  z-index:
-    5;
-
-  box-shadow:
-    0 0 8px
-    rgba(32,229,111,.65);
-}
-
-
-
-/* ==========================================
-   CAMPEÓN
-========================================== */
-
-.campeon {
-
-  width:
-    190px;
-
-  text-align:
-    center;
-}
-
-
-
-/* IMAGEN DE LA COPA */
-
-.copa {
-
-  display:
-    block;
-
-  width:
-    100px;
-
-  height:
-    100px;
-
-  margin:
-    0 auto 10px;
-
-  object-fit:
-    contain;
-}
-
-
-
-/* TEXTO CAMPEÓN */
-
-.campeon-titulo {
-
-  margin-bottom:
-    14px;
-
-  color:
-    var(--oro);
-
-  font-size:
-    16px;
-
-  font-weight:
-    900;
-
-  letter-spacing:
-    1px;
-}
-
-
-
-/* TARJETA DEL CAMPEÓN */
-
-.campeon-card {
-
-  padding:
-    18px 15px 20px;
-
-  border:
-    2px solid
-    var(--oro);
-
-  border-radius:
-    12px;
-
-  background:
-    rgba(7,21,33,.88);
-
-  box-shadow:
-    0 0 18px
-    rgba(255,201,40,.18);
-}
-
-
-
-/* CORONA */
-
-.corona {
-
-  margin-bottom:
-    5px;
-
-  color:
-    var(--oro);
-
-  font-size:
-    35px;
-}
-
-
-
-/* POSICIÓN ORIGINAL DEL CAMPEÓN */
-
-.campeon-puesto {
-
-  margin-bottom:
-    4px;
-
-  color:
-    var(--oro);
-
-  font-size:
-    11px;
-
-  font-weight:
-    800;
-
-  letter-spacing:
-    1px;
-}
-
-
-
-/* NOMBRE DEL CAMPEÓN */
-
-.nombre-campeon {
-
-  font-size:
-    19px;
-
-  font-weight:
-    800;
-}
-
-
-
-/* ==========================================
-   MÓVIL
-========================================== */
-
-@media (max-width: 600px) {
-
-  :root {
-
-    --ancho-columna:
-      245px;
-
-    --ancho-partido:
-      215px;
   }
 
 
-  .encabezado {
+  partido.appendChild(
+    crearFilaEquipo(
+      equipoA,
+      marcadorA,
+      ganador
+    )
+  );
 
-    padding-top:
-      20px;
+
+  partido.appendChild(
+    crearFilaEquipo(
+      equipoB,
+      marcadorB,
+      ganador
+    )
+  );
+
+
+  return partido;
+
+}
+
+
+
+/* =========================================================
+   7. CREAR FILA DE EQUIPO
+   ========================================================= */
+
+function crearFilaEquipo(
+  equipo,
+  marcador,
+  ganador
+) {
+
+  const fila =
+    document.createElement("div");
+
+  fila.className =
+    "equipo";
+
+
+  if (
+    equipo &&
+    ganador &&
+    equipo === ganador
+  ) {
+
+    fila.classList.add(
+      "ganador"
+    );
+
   }
 
 
-  .titulo {
+  /* PUESTO */
 
-    font-size:
-      20px;
+  const puesto =
+    document.createElement("span");
+
+  puesto.className =
+    "puesto";
+
+  puesto.textContent =
+    equipo
+      ? equipo.puesto
+      : "—";
+
+
+  /* NOMBRE */
+
+  const nombre =
+    document.createElement("span");
+
+  nombre.className =
+    "nombre";
+
+  nombre.textContent =
+    equipo
+      ? equipo.nombre
+      : "Por definir";
+
+
+  /* MARCADOR */
+
+  const marcadorElemento =
+    document.createElement("span");
+
+  marcadorElemento.className =
+    "marcador";
+
+  marcadorElemento.textContent =
+    marcador !== null
+      ? marcador
+      : "–";
+
+
+  fila.appendChild(
+    puesto
+  );
+
+  fila.appendChild(
+    nombre
+  );
+
+  fila.appendChild(
+    marcadorElemento
+  );
+
+
+  return fila;
+
+}
+
+
+
+/* =========================================================
+   8. OCTAVOS
+   ========================================================= */
+
+const ganadoresOctavos = [];
+
+const contenedorOctavos =
+  document.getElementById(
+    "octavos"
+  );
+
+
+crucesOctavos.forEach(
+  (cruce, index) => {
+
+    const numeroPartido =
+      index + 1;
+
+
+    const equipoA =
+      equipos[cruce[0]];
+
+    const equipoB =
+      equipos[cruce[1]];
+
+
+    const marcadorA =
+      obtenerMarcador(
+        `o${numeroPartido}a`
+      );
+
+    const marcadorB =
+      obtenerMarcador(
+        `o${numeroPartido}b`
+      );
+
+
+    const ganador =
+      obtenerGanador(
+        equipoA,
+        equipoB,
+        marcadorA,
+        marcadorB
+      );
+
+
+    ganadoresOctavos.push(
+      ganador
+    );
+
+
+    contenedorOctavos.appendChild(
+
+      crearPartido(
+        equipoA,
+        equipoB,
+        marcadorA,
+        marcadorB,
+        ganador
+      )
+
+    );
+
   }
+);
 
 
-  .bracket {
 
-    gap:
-      35px;
+/* =========================================================
+   9. CUARTOS
 
-    padding-left:
-      18px;
+   Ganador O1 vs ganador O2
+   Ganador O3 vs ganador O4
+   Ganador O5 vs ganador O6
+   Ganador O7 vs ganador O8
+   ========================================================= */
 
-    padding-right:
-      40px;
-  }
+const ganadoresCuartos = [];
 
-
-  .equipo {
-
-    padding:
-      8px 10px;
-  }
+const contenedorCuartos =
+  document.getElementById(
+    "cuartos"
+  );
 
 
-  .equipo .puesto {
+for (
+  let i = 0;
+  i < 4;
+  i++
+) {
 
-    width:
-      25px;
-
-    min-width:
-      25px;
-
-    margin-right:
-      7px;
-
-    font-size:
-      10px;
-  }
+  const numeroPartido =
+    i + 1;
 
 
-  .equipo .nombre {
+  const equipoA =
+    ganadoresOctavos[i * 2];
 
-    font-size:
-      13px;
-  }
+  const equipoB =
+    ganadoresOctavos[
+      (i * 2) + 1
+    ];
 
 
-  .equipo .marcador {
+  const marcadorA =
+    obtenerMarcador(
+      `c${numeroPartido}a`
+    );
 
-    min-width:
-      24px;
+  const marcadorB =
+    obtenerMarcador(
+      `c${numeroPartido}b`
+    );
 
-    margin-left:
-      5px;
 
-    font-size:
-      17px;
-  }
+  const ganador =
+    obtenerGanador(
+      equipoA,
+      equipoB,
+      marcadorA,
+      marcadorB
+    );
+
+
+  ganadoresCuartos.push(
+    ganador
+  );
+
+
+  contenedorCuartos.appendChild(
+
+    crearPartido(
+      equipoA,
+      equipoB,
+      marcadorA,
+      marcadorB,
+      ganador
+    )
+
+  );
+
+}
+
+
+
+/* =========================================================
+   10. SEMIFINALES
+   ========================================================= */
+
+const ganadoresSemifinales = [];
+
+const contenedorSemifinales =
+  document.getElementById(
+    "semifinales"
+  );
+
+
+for (
+  let i = 0;
+  i < 2;
+  i++
+) {
+
+  const numeroPartido =
+    i + 1;
+
+
+  const equipoA =
+    ganadoresCuartos[i * 2];
+
+  const equipoB =
+    ganadoresCuartos[
+      (i * 2) + 1
+    ];
+
+
+  const marcadorA =
+    obtenerMarcador(
+      `s${numeroPartido}a`
+    );
+
+  const marcadorB =
+    obtenerMarcador(
+      `s${numeroPartido}b`
+    );
+
+
+  const ganador =
+    obtenerGanador(
+      equipoA,
+      equipoB,
+      marcadorA,
+      marcadorB
+    );
+
+
+  ganadoresSemifinales.push(
+    ganador
+  );
+
+
+  contenedorSemifinales.appendChild(
+
+    crearPartido(
+      equipoA,
+      equipoB,
+      marcadorA,
+      marcadorB,
+      ganador
+    )
+
+  );
+
+}
+
+
+
+/* =========================================================
+   11. FINAL
+   ========================================================= */
+
+const equipoFinalA =
+  ganadoresSemifinales[0];
+
+const equipoFinalB =
+  ganadoresSemifinales[1];
+
+
+const marcadorFinalA =
+  obtenerMarcador(
+    "f1a"
+  );
+
+const marcadorFinalB =
+  obtenerMarcador(
+    "f1b"
+  );
+
+
+const campeon =
+  obtenerGanador(
+    equipoFinalA,
+    equipoFinalB,
+    marcadorFinalA,
+    marcadorFinalB
+  );
+
+
+const contenedorFinal =
+  document.getElementById(
+    "final"
+  );
+
+
+contenedorFinal.appendChild(
+
+  crearPartido(
+    equipoFinalA,
+    equipoFinalB,
+    marcadorFinalA,
+    marcadorFinalB,
+    campeon
+  )
+
+);
+
+
+
+/* =========================================================
+   12. CAMPEÓN
+   ========================================================= */
+
+const contenedorCampeon =
+  document.getElementById(
+    "campeon"
+  );
+
+
+if (campeon) {
+
+  contenedorCampeon.innerHTML = `
+
+    <img
+      class="copa"
+      src="copa.png"
+      alt="Copa"
+    >
+
+    <div class="campeon-titulo">
+      CAMPEÓN
+    </div>
+
+    <div class="campeon-card">
+
+      <div class="corona">
+        ♛
+      </div>
+
+      <div class="campeon-puesto">
+        #${campeon.puesto}
+      </div>
+
+      <div class="nombre-campeon">
+        ${campeon.nombre}
+      </div>
+
+    </div>
+
+  `;
+
+} else {
+
+  contenedorCampeon.innerHTML = `
+
+    <img
+      class="copa"
+      src="copa.png"
+      alt="Copa"
+    >
+
+    <div class="campeon-titulo">
+      CAMPEÓN
+    </div>
+
+    <div class="campeon-card">
+
+      <div class="corona">
+        ♛
+      </div>
+
+      <div class="nombre-campeon">
+        Por definir
+      </div>
+
+    </div>
+
+  `;
 
 }
