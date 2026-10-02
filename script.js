@@ -50,27 +50,113 @@ const params = new URLSearchParams(
 
 
 /* =========================================================
-   2. CREAR LOS 16 EQUIPOS
+   2. CREAR LOS EQUIPOS
 ========================================================= */
 
 const equipos = {};
 
 
-for (let i = 1; i <= 16; i++) {
+/*
+   NUEVO SISTEMA
 
-  equipos[i] = {
+   Glide puede mandar:
 
-    puesto: i,
+   ?equipos=C2|C1|C5|C0|C7...
 
-    nombre:
-      params.get(`p${i}`) ||
-      `Equipo ${i}`
+   El orden de la lista determina el puesto:
 
-  };
+   primer elemento  = Place 1
+   segundo elemento = Place 2
+   tercer elemento  = Place 3
+   etc.
+*/
+
+const equiposTexto =
+  params.get("equipos");
+
+
+if (equiposTexto) {
+
+  const listaEquipos =
+    equiposTexto
+      .split("|")
+      .map(nombre => nombre.trim());
+
+
+  listaEquipos.forEach(
+    (nombre, index) => {
+
+      const puesto =
+        index + 1;
+
+
+      equipos[puesto] = {
+
+        puesto: puesto,
+
+        nombre:
+          nombre ||
+          `Equipo ${puesto}`
+
+      };
+
+    }
+  );
+
+
+  /*
+     Si todavía no existen 16 equipos,
+     completamos temporalmente los faltantes.
+
+     Esto es útil mientras hacemos pruebas.
+  */
+
+  for (let i = 1; i <= 16; i++) {
+
+    if (!equipos[i]) {
+
+      equipos[i] = {
+
+        puesto: i,
+
+        nombre:
+          `Equipo ${i}`
+
+      };
+
+    }
+
+  }
 
 }
 
 
+/*
+   SISTEMA ANTERIOR
+
+   Lo conservamos como respaldo para poder
+   seguir utilizando URLs como:
+
+   ?p1=Rudos&p2=Halcones...
+*/
+
+else {
+
+  for (let i = 1; i <= 16; i++) {
+
+    equipos[i] = {
+
+      puesto: i,
+
+      nombre:
+        params.get(`p${i}`) ||
+        `Equipo ${i}`
+
+    };
+
+  }
+
+}
 
 /* =========================================================
    3. ESTRUCTURA FIJA DE OCTAVOS
