@@ -48,7 +48,6 @@ const params = new URLSearchParams(
 );
 
 
-
 /* =========================================================
    2. CREAR LOS EQUIPOS
 ========================================================= */
@@ -57,18 +56,17 @@ const equipos = {};
 
 
 /*
-   NUEVO SISTEMA
+   NUEVO SISTEMA DESDE GLIDE
 
-   Glide puede mandar:
+   Ejemplo:
 
-   ?equipos=C2|C1|C5|C0|C7...
+   ?equipos=C2|C1|C5|C0|C7|C3|C8|C4|C9|C6
 
-   El orden de la lista determina el puesto:
+   El orden determina el puesto.
 
-   primer elemento  = Place 1
-   segundo elemento = Place 2
-   tercer elemento  = Place 3
-   etc.
+   Si existen menos de 16 equipos,
+   los lugares restantes se convierten
+   automáticamente en BYE.
 */
 
 const equiposTexto =
@@ -80,35 +78,46 @@ if (equiposTexto) {
   const listaEquipos =
     equiposTexto
       .split("|")
-      .map(nombre => nombre.trim());
-
-
-  listaEquipos.forEach(
-    (nombre, index) => {
-
-      const puesto =
-        index + 1;
-
-
-      equipos[puesto] = {
-
-        puesto: puesto,
-
-        nombre:
-          nombre ||
-          `Equipo ${puesto}`
-
-      };
-
-    }
-  );
+      .map(nombre => nombre.trim())
+      .filter(nombre => nombre !== "");
 
 
   /*
-     Si todavía no existen 16 equipos,
-     completamos temporalmente los faltantes.
+     EQUIPOS REALES
+  */
 
-     Esto es útil mientras hacemos pruebas.
+  listaEquipos
+    .slice(0, 16)
+    .forEach(
+      (nombre, index) => {
+
+        const puesto =
+          index + 1;
+
+
+        equipos[puesto] = {
+
+          puesto: puesto,
+
+          nombre: nombre,
+
+          bye: false
+
+        };
+
+      }
+    );
+
+
+  /*
+     COMPLETAR HASTA 16 CON BYE
+
+     Ejemplo:
+
+     Si tenemos 10 equipos:
+
+     1-10  = equipos reales
+     11-16 = BYE
   */
 
   for (let i = 1; i <= 16; i++) {
@@ -119,8 +128,9 @@ if (equiposTexto) {
 
         puesto: i,
 
-        nombre:
-          `Equipo ${i}`
+        nombre: "BYE",
+
+        bye: true
 
       };
 
@@ -134,8 +144,8 @@ if (equiposTexto) {
 /*
    SISTEMA ANTERIOR
 
-   Lo conservamos como respaldo para poder
-   seguir utilizando URLs como:
+   Lo conservamos para poder seguir
+   haciendo pruebas con:
 
    ?p1=Rudos&p2=Halcones...
 */
@@ -144,15 +154,37 @@ else {
 
   for (let i = 1; i <= 16; i++) {
 
-    equipos[i] = {
+    const nombre =
+      params.get(`p${i}`);
 
-      puesto: i,
 
-      nombre:
-        params.get(`p${i}`) ||
-        `Equipo ${i}`
+    if (nombre) {
 
-    };
+      equipos[i] = {
+
+        puesto: i,
+
+        nombre: nombre,
+
+        bye: false
+
+      };
+
+    }
+
+    else {
+
+      equipos[i] = {
+
+        puesto: i,
+
+        nombre: `Equipo ${i}`,
+
+        bye: false
+
+      };
+
+    }
 
   }
 
@@ -321,11 +353,19 @@ function leerResultado(clave) {
 /* =========================================================
    5. OBTENER GANADOR
 
-   IMPORTANTE:
+   REGLAS:
 
-   NO analizamos los sets.
+   1. Equipo real vs BYE
+      → avanza automáticamente el equipo real.
 
-   Glide nos dice quién ganó.
+   2. BYE vs equipo real
+      → avanza automáticamente el equipo real.
+
+   3. Equipo real vs equipo real
+      → Glide determina el ganador.
+
+   4. BYE vs BYE
+      → nadie avanza.
 ========================================================= */
 
 function obtenerGanador(
@@ -334,9 +374,80 @@ function obtenerGanador(
   resultado
 ) {
 
+  /*
+     Todavía no conocemos alguno
+     de los participantes.
+  */
+
   if (
     !equipoA ||
-    !equipoB ||
+    !equipoB
+  ) {
+
+    return null;
+
+  }
+
+
+  /*
+     BYE vs BYE
+
+     No existe partido.
+  */
+
+  if (
+    equipoA.bye &&
+    equipoB.bye
+  ) {
+
+    return null;
+
+  }
+
+
+  /*
+     EQUIPO REAL vs BYE
+
+     Equipo A avanza automáticamente.
+  */
+
+  if (
+    !equipoA.bye &&
+    equipoB.bye
+  ) {
+
+    return equipoA;
+
+  }
+
+
+  /*
+     BYE vs EQUIPO REAL
+
+     Equipo B avanza automáticamente.
+  */
+
+  if (
+    equipoA.bye &&
+    !equipoB.bye
+  ) {
+
+    return equipoB;
+
+  }
+
+
+  /*
+     A partir de aquí tenemos:
+
+     EQUIPO REAL vs EQUIPO REAL
+
+     Por lo tanto necesitamos que Glide
+     nos indique quién ganó.
+  */
+
+  if (
+    !resultado ||
     !resultado.ganadorPuesto
   ) {
 
@@ -366,16 +477,13 @@ function obtenerGanador(
 
 
   /*
-     Si Glide manda un puesto que
-     no corresponde a ninguno de
-     los dos jugadores, no avanzamos.
+     Glide mandó un puesto que no
+     corresponde a este partido.
   */
 
   return null;
 
 }
-
-
 
 /* =========================================================
    6. OBTENER MARCADOR DE UN SET
