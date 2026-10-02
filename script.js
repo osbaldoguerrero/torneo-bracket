@@ -46,7 +46,29 @@
 const params = new URLSearchParams(
   window.location.search
 );
+/* =========================================================
+   NOMBRE DEL TORNEO
+========================================================= */
 
+const nombreTorneo =
+  params.get("torneo");
+
+
+if (nombreTorneo) {
+
+  const subtitulo =
+    document.querySelector(
+      ".subtitulo"
+    );
+
+  if (subtitulo) {
+
+    subtitulo.textContent =
+      nombreTorneo;
+
+  }
+
+}
 
 /* =========================================================
    2. CREAR LOS EQUIPOS
