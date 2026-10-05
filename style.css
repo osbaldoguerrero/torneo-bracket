@@ -381,16 +381,25 @@ body {
 
 /* =========================================================
    ESPACIADO DE RONDAS
+   BRACKET DE 8 EQUIPOS
 ========================================================= */
 
-.octavos .partidos {
+
+/* CUARTOS: primera ronda */
+
+.cuartos .partidos {
+
+  padding-top:
+    0;
 
   gap:
     18px;
 }
 
 
-.cuartos .partidos {
+/* SEMIFINALES */
+
+.semifinales .partidos {
 
   padding-top:
     57px;
@@ -400,30 +409,22 @@ body {
 }
 
 
-.semifinales .partidos {
-
-  padding-top:
-    172px;
-
-  gap:
-    366px;
-}
-
+/* FINAL */
 
 .final .partidos {
 
   padding-top:
-    403px;
+    172px;
 }
 
+
+/* CAMPEÓN */
 
 .campeon-ronda {
 
   padding-top:
-    340px;
+    110px;
 }
-
-
 
 /* =========================================================
    CONTENEDOR INDIVIDUAL DEL PARTIDO
